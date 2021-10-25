@@ -21,7 +21,7 @@ class Chart extends StatelessWidget {
         'day': DateFormat.E().format(weekDay).substring(0, 1),
         'amount': totalSum
       };
-    });
+    }).reversed.toList();
   }
 
   double get maxS {
@@ -32,25 +32,28 @@ class Chart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        elevation: 6,
-        margin: EdgeInsets.all(20),
-        child: Container(
-          padding: EdgeInsets.all(10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: groupedT
-                .map((data) => Flexible(
-                      fit: FlexFit.tight,
-                      child: ChartBar(
-                          data['day'],
-                          data['amount'],
-                          maxS == 0.0
-                              ? 0.0
-                              : (data['amount'] as double) / maxS),
-                    ))
-                .toList(),
-          ),
-        ));
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.3,
+      child: Card(
+          elevation: 6,
+          margin: EdgeInsets.all(20),
+          child: Container(
+            padding: EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: groupedT
+                  .map((data) => Flexible(
+                        fit: FlexFit.tight,
+                        child: ChartBar(
+                            data['day'],
+                            data['amount'],
+                            maxS == 0.0
+                                ? 0.0
+                                : (data['amount'] as double) / maxS),
+                      ))
+                  .toList(),
+            ),
+          )),
+    );
   }
 }

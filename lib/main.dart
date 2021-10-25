@@ -24,8 +24,8 @@ class MyApp extends StatelessWidget {
               )),
           appBarTheme: AppBarTheme(
             textTheme: ThemeData.light().textTheme.copyWith(
-                  headline6: TextStyle(fontFamily: 'OpenSans', fontSize: 20),
-                ),
+                headline6: TextStyle(fontFamily: 'OpenSans', fontSize: 20),
+                button: TextStyle(color: Colors.white)),
           )),
       home: MyHomePage(),
     );
@@ -49,6 +49,7 @@ class MyHomePageState extends State<MyHomePage> {
     // Transaction(
     //     id: 't2', title: 'new shirt', amount: 79.99, date: DateTime.now())
   ];
+  bool showChart = false;
   List<Transaction> get recent {
     return transactions
         .where(
@@ -67,39 +68,90 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void datePicker(BuildContext ctx) {
+    showDatePicker(
+        context: ctx,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2019),
+        lastDate: DateTime.now());
+  }
+
   void startTx(BuildContext ctx) {
     showModalBottomSheet(
       context: ctx,
       builder: (bCtx) {
         return GestureDetector(
           onTap: () {},
-          child: NewTransaction(
-              _addNewTransaction, titleController, amountController),
+          child: NewTransaction(_addNewTransaction, titleController,
+              amountController, datePicker),
           behavior: HitTestBehavior.opaque,
         );
       },
     );
   }
 
+  void deleteT(String id) {
+    setState(() {
+      transactions.removeWhere((tx) => tx.id == id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final appBar = AppBar(
+      title: Text('Daily Expenses'),
+      actions: [
+        IconButton(
+          onPressed: () => startTx(context),
+          icon: Icon(Icons.add),
+        )
+      ],
+    );
+    final txListWidget = Container(
+        height: (MediaQuery.of(context).size.height -
+            appBar.preferredSize.height -
+            MediaQuery.of(context).padding.top),
+        child: TransactionList(transactions, deleteT));
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Daily Expenses'),
-        actions: [
-          IconButton(
-            onPressed: () => startTx(context),
-            icon: Icon(Icons.add),
-          )
-        ],
-      ),
+      appBar: appBar,
       body: SingleChildScrollView(
           child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-            Chart(recent),
-            TransactionList(transactions)
+            if (isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('SHOW chart'),
+                  Switch(
+                      value: showChart,
+                      onChanged: (val) {
+                        setState(() {
+                          showChart = val;
+                        });
+                      })
+                ],
+              ),
+            if (!isLandscape)
+              Container(
+                  height: (MediaQuery.of(context).size.height -
+                          appBar.preferredSize.height -
+                          MediaQuery.of(context).padding.top) *
+                      0.32,
+                  child: Chart(recent)),
+            if (!isLandscape) txListWidget,
+            if (isLandscape)
+              showChart
+                  ? Container(
+                      height: (MediaQuery.of(context).size.height -
+                              appBar.preferredSize.height -
+                              MediaQuery.of(context).padding.top) *
+                          0.7,
+                      child: Chart(recent))
+                  : txListWidget
           ])),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
